@@ -1,0 +1,239 @@
+<!doctype html><html><head><style type="text/css">body {
+  font-family: Arial, sans-serif;
+  background-color: #C2E1FE;
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+input {
+  padding: 8px;
+  width: 60%;
+  margin-bottom: 10px;
+   border-radius: 34px;
+}
+
+button {
+  padding: 8px 20px;
+  background-color: #C2E1FE;
+  color: #376295;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #C2E1FE;
+}
+
+#weatherInfo {
+  margin-top: 20px;
+}
+
+#weatherInfo {
+    margin-top: 20px;
+}
+
+.weather-container {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.weather-box-container {
+    width: 375px;
+   position:fixed;
+   left:550px;
+    display: flex;
+    flex-wrap: wrap;
+       background-color: #fff;
+       padding: 10px;
+       border: 1px solid #ccc;
+       border-radius: 34px;
+}
+
+.weather-box {
+   /* flex-basis: calc(17% - 12px);*/
+   width:60px;
+   height:80px;
+    margin-right: 12px;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.weather-box p {
+    margin: 5px 0;
+}
+
+.weather-box h3 {
+    margin-top: 0;
+     color: #376295
+}
+
+.plaisio{
+  width:97%;
+   flex-basis: calc(60% - 50px);
+   margin-right: -5px;
+    margin-bottom: 0.6px;
+    padding: 10px;
+    background-color: #7eb3e4;
+   /* border: 1px solid #376295;
+    border-radius: 5px;
+    /*width: 200%;*/
+  
+}
+
+.weather-info {
+    transition: opacity 0.5s ease-in-out; /* Προσθήκη μετάβασης */
+}
+
+.weather-info.hidden {
+    opacity: 0; /* Κάνετε τα στοιχεία με opacity: 0 όταν είναι κρυμμένα */
+}
+/* noun-skyline-2003179 1 */
+
+
+</style></head><body>
+<!DOCTYPE html>
+<html lang="el">
+
+<head>
+  <meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Πρόγνωση Καιρού</title>
+	<link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+	<div class="container">
+		<input type="text" id="cityInput" placeholder="Εισαγωγή πόλης">
+		<button onclick="getWeather()">Αναζήτηση</button>
+		<h1 id="cityTitle" style="font-size:25px; color:#376295; font-weight: bold;"></h1>
+		<div id="currentWeatherInfo" class="weather-info"></div>
+		<div id="forecastWeatherInfo" class="weather-info"></div>
+		<button id="forecastButton" onclick="getWeather(true)" style="display: none; font-size:18px;  color:#376295; font-weight: bold; position:fixed; top:620px; left:660px">5ημερη Πρόγνωση</button>
+	</div>
+	<script src="script.js"></script>
+	<script>
+		// Αυτός είναι ο JavaScript κώδικας που παρέχει τη λειτουργικότητα
+      window.onload = function () {
+          document.getElementById('cityInput').value = 'Patra'; // Εμφανίστε προκαθορισμένη τιμή
+          getWeather(); // Πάρτε την τρέχουσα κατάσταση καιρού όταν φορτώνεται η σελίδα
+      }
+	</script>
+</body>
+
+</html><script type="text/javascript">
+async function getWeather(forecast = false) {
+  const apiKey = 'b5e1e86543194570ae7155600241804';
+  const city = document.getElementById('cityInput').value;
+  let apiUrl;
+
+  if (city.trim() === '') {
+    alert('Παρακαλώ εισάγετε μια πόλη πριν κάνετε αναζήτηση πρόγνωσης καιρού.');
+    return;
+  }
+
+  if (forecast) {
+    apiUrl = `https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${city}&days=5&aqi=no&alerts=no`;
+  } else {
+    apiUrl = `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${city}&aqi=no`;
+  }
+
+  try {
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+    const currentWeatherInfo = document.getElementById('currentWeatherInfo');
+    const forecastWeatherInfo = document.getElementById('forecastWeatherInfo');
+    const forecastButton = document.getElementById('forecastButton');
+    const cityTitle = document.getElementById('cityTitle');
+
+    if (response.ok) {
+      cityTitle.innerText = city;
+
+      if (forecast) {
+        document.getElementById('cityInput').style.display = 'none'; // Απόκρυψη του πεδίου εισαγωγής πόλης
+        document.getElementById('forecastButton').style.display = 'none'; // Απόκρυψη του κουμπιού για πρόβλεψη 5 ημερών
+        currentWeatherInfo.innerHTML = ''; // Αφαίρεση της τρέχουσας κατάστασης
+       // document.getElementById('cityInput').value = ''; // Καθαρισμός του πεδίου εισαγωγής πόλης
+        forecastWeatherInfo.style.display = 'block'; // Εμφάνιση της πρόβλεψης 5 ημερών
+       let forecastHtml = '<h2></h2>';
+        data.forecast.forecastday.forEach(day => {
+          const date = new Date(day.date);
+          const dayOfWeek = date.toLocaleDateString('el', { weekday: 'long' });
+          const weather = day.day.condition.text;
+          const maxTemp = day.day.maxtemp_c;
+          const minTemp = day.day.mintemp_c;
+          const chanceOfRain = day.day.daily_chance_of_rain;
+          const windSpeed = day.day.maxwind_kph;
+          const humidity = day.day.avghumidity;
+          forecastHtml += `
+                        <div class="plaisio">
+                            <h3>${dayOfWeek}</h3>
+                            <p>Καιρός: ${weather}</p>
+                            <p>Μέγιστη Θερμοκρασία: ${maxTemp}°C</p>
+                            <p>Ελάχιστη Θερμοκρασία: ${minTemp}°C</p>
+                            <p>Πιθανότητα Βροχής: ${chanceOfRain}%</p>
+                            <p>Ταχύτητα Ανέμου: ${windSpeed} km/h</p>
+                            <p>Υγρασία: ${humidity}%</p>
+                        </div>
+                    `;
+        });
+        forecastWeatherInfo.innerHTML = forecastHtml;
+      } else {
+        currentWeatherInfo.style.display = 'block'; // Εμφάνιση τρέχουσας κατάστασης
+        document.getElementById('cityInput').style.display = 'inline-block'; // Εμφάνιση του πεδίου εισαγωγής πόλης
+        document.getElementById('forecastButton').style.display = 'inline-block'; // Εμφάνιση του κουμπιού για πρόβλεψη 5 ημερών
+        forecastWeatherInfo.style.display = 'none'; // Απόκρυψη της πρόβλεψης 5 ημερών
+        const currentWeather = data.current.condition.text;
+        const currentTemp = data.current.temp_c;
+        const currentHumidity = data.current.humidity;
+        const currentWindSpeed = data.current.wind_kph;
+        const currentChanceOfRain = data.current.precip_mm;
+        const currentWeatherHtml = `
+                    <h2 style="font-size:16px;  color:#376295; font-weight: bold;">Τώρα</h2> 
+                    <p style="font-size:18px;  color:#376295; font-weight: bold;">${currentWeather}</p>
+                    <p style="font-size:40px;  color:#376295; font-weight: bold; position:fixed; top:140px; left:700px"> ${currentTemp}°C</p>
+                    <img style="width: 80%;  top: 200px;" src="noun-skyline-2003179.png">
+                    <div class="weather-box-container">
+                        <div class="weather-box">
+                          <img src="rainy-climate(4).png">
+                            <p style="font-size:12px;  color:#376295; font-weight: bold;"> ${currentTemp}°C</p>
+                        </div>
+                        <div class="weather-box">
+                          <img src="rainy(1).png">
+                            <p style="font-size:12px;  color:#376295; font-weight: bold;">${currentChanceOfRain}%</p>
+                        </div>
+                        <div class="weather-box">
+                          <img src="strong.png">
+                            <p style="font-size:12px;  color:#376295; font-weight: bold;">${currentWindSpeed} km</p>
+                        </div>
+                        <div class="weather-box">
+                          <img src="humidity(2).png">
+                            <p style="font-size:12px;  color:#376295; font-weight: bold;"> ${currentHumidity}%</p>
+                        </div>
+                    </div>
+                `;
+
+        currentWeatherInfo.innerHTML = currentWeatherHtml;
+        // Display forecast button only when a city is searched
+        forecastButton.style.display = 'block';
+      }
+    } else {
+      currentWeatherInfo.innerHTML = '<p>Δεν βρέθηκαν πληροφορίες καιρού για αυτήν την τοποθεσία. Ελέγξτε την είσοδο σας και προσπαθήστε ξανά.</p>';
+    }
+  } catch (error) {
+    console.error(' ΑΏ­ΊΕΘµ ΓΖ¬»Ό±:', error);
+  }
+}
+
+
+
+
+
+</script></body><html>
+
